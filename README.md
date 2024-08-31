@@ -2,6 +2,8 @@
 
 A Chat UI demo built with React Native
 
+<img src="./assets/sample.png" alt="Demo Image" width="300" height="600"/>
+
 ## Table of Contents
 
 - [Installation](#installation)
