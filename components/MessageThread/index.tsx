@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   Dimensions,
   KeyboardAvoidingView,
+  Button,
 } from "react-native";
 import { v4 as uuid } from "uuid";
 import MessageBlock from "../MessageBlock";
@@ -124,6 +125,12 @@ const MessageThread: FC<IMessageThread> = ({
                     placeholderTextColor="#888"
                     style={styles.input}
                     autoFocus={true}
+                  />
+                  <Button
+                    title="Send"
+                    color="#fff"
+                    onPress={submitReply}
+                    disabled={!currentReply.trim()}
                   />
                 </View>
               </View>
