@@ -11,13 +11,13 @@ import {
   Platform,
   TouchableOpacity,
 } from "react-native";
-import MessageBlock from "../MessageBlock";
+import MessageBlock from "../../components/MessageBlock";
 import { getMyId } from "../../utils";
 import { SENDERS } from "../../constants";
 import "react-native-get-random-values";
 import { generateMockMessages } from "../../mock";
-import MessageActionsModal from "../MessageActionsModal";
-import MessageThread from "../MessageThread";
+import MessageActionsModal from "../../components/MessageActionsModal";
+import MessageThread from "../../components/MessageThread";
 import { IMockMessage } from "../../types";
 import { useMessages } from "../../hooks/useMessages";
 

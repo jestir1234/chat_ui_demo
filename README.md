@@ -1,10 +1,6 @@
-Certainly! Below is a sample `README.md` file for your React Native application that uses Expo. This `README` includes instructions on how to install, run, and develop the application.
+# Chat UI Demo
 
----
-
-# Project Name
-
-A brief description of what your project does or its main purpose.
+A Chat UI demo built with React Native
 
 ## Table of Contents
 
@@ -81,13 +77,14 @@ Before you start, ensure you have the following installed:
 
 ### File Structure
 
-Briefly explain the file structure and any key files that the developer should be aware of.
-
-Example:
-
 - **`/components`**: Reusable components.
 - **`/screens`**: Screen components.
-- **`App.js`**: The entry point for the application.
+- **`/constants`**: Constants
+- **`/hooks`**: Custom Hooks
+- **`/types`**: Types
+- **`/utils`**: Util functions
+- **`App.tsx`**: The entry point for the application.
+- **`mock.ts`**: Mock data
 
 ### Debugging
 
@@ -156,7 +153,3 @@ To create a production build of your application, you can use Expo's build servi
 4. **Build Errors**:
    - Ensure all dependencies are installed by running `npm install`.
    - Check for any platform-specific issues in the [Expo documentation](https://docs.expo.dev/).
-
----
-
-This `README.md` file provides a clear guide for anyone who wants to install, run, and contribute to your React Native project. Modify the content to fit your project's specifics, such as adding more detailed instructions or customizing the file structure explanation.
