@@ -4,6 +4,7 @@ import { GestureResponderEvent } from "react-native";
 const useSwipeDown = (threshold = 20) => {
   const [startY, setStartY] = useState(0);
   const [isSwipingDown, setIsSwipingDown] = useState(false);
+  const [isInnerScrollViewActive, setIsInnerScrollViewActive] = useState(false);
 
   const handleTouchStart = (event: GestureResponderEvent) => {
     setStartY(event.nativeEvent.pageY);
@@ -25,11 +26,41 @@ const useSwipeDown = (threshold = 20) => {
     return swipeDetected;
   };
 
+  const handleInnerScrollViewTouchStart = () => {
+    setIsInnerScrollViewActive(true);
+  };
+
+  const handleInnerScrollViewTouchEnd = () => {
+    setIsInnerScrollViewActive(false);
+  };
+
+  const handleOuterTouchStart = (event: GestureResponderEvent) => {
+    if (!isInnerScrollViewActive) {
+      handleTouchStart(event);
+    }
+  };
+
+  const handleOuterTouchMove = (event: GestureResponderEvent) => {
+    if (!isInnerScrollViewActive) {
+      handleTouchMove(event);
+    }
+  };
+
+  const handleOuterTouchEnd = () => {
+    if (!isInnerScrollViewActive) {
+      return handleTouchEnd();
+    }
+    return false;
+  };
+
   return {
-    handleTouchStart,
-    handleTouchMove,
-    handleTouchEnd,
+    handleOuterTouchStart,
+    handleOuterTouchMove,
+    handleOuterTouchEnd,
+    handleInnerScrollViewTouchStart,
+    handleInnerScrollViewTouchEnd,
     isSwipingDown,
+    isInnerScrollViewActive,
   };
 };
 

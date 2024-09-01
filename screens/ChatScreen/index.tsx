@@ -41,6 +41,9 @@ const ChatScreen: FC = () => {
     messageThread,
     setMessageThread,
     handleAddReply,
+    handleEmojiReply,
+    handleUpdateReply,
+    handleDeleteReply,
   } = useMessages(MOCK_DATA);
 
   // Refs
@@ -76,7 +79,10 @@ const ChatScreen: FC = () => {
         onLongPress={() => openMessageActions(item)}
         activeOpacity={0.6}
       >
-        <MessageBlock message={{ ...item, ...SENDERS[item.senderId] }} />
+        <MessageBlock
+          message={{ ...item, ...SENDERS[item.senderId] }}
+          isSelected={selectedMessage?.id === item.id}
+        />
       </TouchableOpacity>
     );
   };
@@ -151,6 +157,10 @@ const ChatScreen: FC = () => {
         messageThread={threadMessage}
         setMessageThread={setMessageThread}
         handleAddReply={handleAddReply}
+        setSelectedMessage={setSelectedMessage}
+        handleEmojiReply={handleEmojiReply}
+        handleUpdateReply={handleUpdateReply}
+        handleDeleteReply={handleDeleteReply}
       />
     </KeyboardAvoidingView>
   );

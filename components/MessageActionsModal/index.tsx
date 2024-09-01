@@ -8,6 +8,7 @@ import {
   Text,
   TouchableWithoutFeedback,
 } from "react-native";
+import { EMOJIS } from "../../constants";
 
 interface IMessageActionsModal {
   isModalVisible: boolean;
@@ -19,8 +20,6 @@ interface IMessageActionsModal {
   handleDeleteMessage: () => void;
   handleReplyMessage: () => void;
 }
-
-const EMOJIS = ["👍", "😂", "❤️", "💯"];
 
 const MessageActionsModal: FC<IMessageActionsModal> = ({
   isModalVisible,

@@ -29,3 +29,5 @@ export const SENDERS: ISenderById = {
       "https://i.pinimg.com/564x/9d/9e/bc/9d9ebc588763f577af11defbebf5dfb2.jpg",
   },
 };
+
+export const EMOJIS = ["👍", "😂", "❤️", "💯"];

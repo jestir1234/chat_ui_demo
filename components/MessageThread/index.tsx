@@ -1,5 +1,12 @@
-import React, { FC, useRef, useState, useEffect } from "react";
-import { IMessage } from "../../types";
+import React, {
+  FC,
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
+import { IMessage, IMockMessage } from "../../types";
 import {
   View,
   Modal,
@@ -11,29 +18,70 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Button,
+  TouchableOpacity,
 } from "react-native";
 import { v4 as uuid } from "uuid";
 import MessageBlock from "../MessageBlock";
 import { getMyId } from "../../utils";
 import { SENDERS } from "../../constants";
 import useSwipeDown from "../../hooks/useSwipeDown";
+import ReplyActionsPopup from "./ReplyActionsPopup";
+import RepliedMessagePreview from "./RepliedMessagePreview";
+import { generateMockMessage } from "../../mock";
 
 interface IMessageThread {
   messageThread: IMessage | null;
   setMessageThread: (value: IMessage | null) => void;
   handleAddReply: (reply: IMessage) => void;
+  setSelectedMessage: React.Dispatch<React.SetStateAction<IMockMessage | null>>;
+  handleEmojiReply: (
+    emoji: string,
+    selectedReply: IMessage,
+    cb?: () => void
+  ) => void;
+  handleUpdateReply: (
+    currentReply: string,
+    selectedReply: IMessage,
+    cb?: () => void
+  ) => void;
+  handleDeleteReply: (selectedReply: IMessage, cb?: () => void) => void;
 }
 
 const MessageThread: FC<IMessageThread> = ({
   messageThread,
   setMessageThread,
+  setSelectedMessage,
   handleAddReply,
+  handleEmojiReply,
+  handleUpdateReply,
+  handleDeleteReply,
 }) => {
-  const { handleTouchStart, handleTouchMove, handleTouchEnd, isSwipingDown } =
-    useSwipeDown();
+  const {
+    handleOuterTouchStart,
+    handleOuterTouchMove,
+    handleOuterTouchEnd,
+    handleInnerScrollViewTouchStart,
+    handleInnerScrollViewTouchEnd,
+  } = useSwipeDown();
+
   const [currentReply, setCurrentReply] = useState<string>("");
+  const [selectedReply, setSelectedReply] = useState<IMessage | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isReplying, setIsReplying] = useState<boolean>(false);
   const replyInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const repliesHash = useMemo(() => {
+    return (
+      messageThread?.meta?.replies?.reduce(
+        (acc: { [key: string]: IMessage }, val: IMessage) => {
+          acc[val.id] = val;
+          return acc;
+        },
+        {}
+      ) || {}
+    );
+  }, [messageThread?.meta?.replies]);
 
   useEffect(() => {
     setCurrentReply("");
@@ -46,19 +94,41 @@ const MessageThread: FC<IMessageThread> = ({
       id: uuid(),
       text: currentReply,
       timestamp: new Date(),
+      replyToId: isReplying && selectedReply ? selectedReply.id : undefined,
       ...SENDERS[myID],
     });
-    setCurrentReply("");
+    cleanup();
     scrollToBottom();
   };
 
   const renderReplies = () => {
     const replies = messageThread?.meta?.replies
       ? messageThread.meta?.replies.map((message) => (
-          <MessageBlock
-            message={{ ...message, isFirstMessage: true }}
+          <TouchableOpacity
+            style={styles.replyBlock}
             key={message.id}
-          />
+            onLongPress={() => handleSelectReply(message)}
+          >
+            {selectedReply?.id === message.id && (
+              <ReplyActionsPopup
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
+                setIsReplying={setIsReplying}
+                handleEmojiReply={handleEmojiReply}
+                selectedReply={selectedReply}
+                handleInputFocus={handleInputFocus}
+                handleDeleteReply={handleDeleteReply}
+                onClose={() => setSelectedReply(null)}
+              />
+            )}
+            {message.replyToId ? (
+              <RepliedMessagePreview message={repliesHash[message.replyToId]} />
+            ) : null}
+            <MessageBlock
+              message={{ ...message, isFirstMessage: true }}
+              isSelected={selectedReply?.id === message.id}
+            />
+          </TouchableOpacity>
         ))
       : null;
 
@@ -72,26 +142,96 @@ const MessageThread: FC<IMessageThread> = ({
   };
 
   const handleSwipeDown = () => {
-    const swipeDetected = handleTouchEnd();
+    const swipeDetected = handleOuterTouchEnd();
     if (swipeDetected) {
-      setMessageThread(null);
+      handleClose();
     }
   };
+
+  const handleClose = () => {
+    setMessageThread(null);
+    setSelectedMessage(null);
+  };
+
+  const handleSelectReply = useCallback((message: IMessage) => {
+    setSelectedReply(message);
+  }, []);
+
+  const handleInputFocus = () => {
+    replyInputRef.current?.focus();
+  };
+
+  const handleSendReplyEdit = () => {
+    if (selectedReply) {
+      handleUpdateReply(currentReply, selectedReply, cleanup);
+    }
+  };
+
+  const cleanup = () => {
+    setSelectedReply(null);
+    setCurrentReply("");
+  };
+
+  const getInputPlaceholder = () => {
+    let preText = "Type";
+    if (isEditing) {
+      preText = "Edit";
+    }
+
+    if (isReplying) {
+      preText = "Reply to";
+    }
+    return `${preText} a message...`;
+  };
+
+  const inputPretext = useMemo(
+    () => getInputPlaceholder(),
+    [isEditing, isReplying]
+  );
   const screenHeight = Dimensions.get("window").height;
 
+  // PERIODICALLY MOCK REPLIES ---------------------------------------------------
+  useEffect(() => {
+    const mockRepliesInterval = setInterval(() => {
+      let randomReplyIdx = 0;
+      const mockReply = generateMockMessage();
+      const shouldReply =
+        messageThread?.meta?.replies?.length &&
+        Math.floor(Math.random() * 10) > 5;
+      if (shouldReply && messageThread?.meta?.replies?.length) {
+        randomReplyIdx = Math.floor(
+          Math.random() * messageThread?.meta?.replies?.length
+        );
+      }
+      handleAddReply({
+        ...mockReply,
+        ...SENDERS[mockReply.senderId],
+        replyToId:
+          shouldReply && messageThread?.meta?.replies?.length
+            ? messageThread?.meta?.replies[randomReplyIdx].id
+            : undefined,
+      });
+    }, 5000);
+
+    if (!messageThread) {
+      clearInterval(mockRepliesInterval);
+    }
+
+    return () => clearInterval(mockRepliesInterval);
+  }, [messageThread]);
   return (
     <Modal
       visible={!!messageThread}
       transparent={true}
       animationType="slide"
-      onRequestClose={() => setMessageThread(null)}
+      onRequestClose={handleClose}
     >
       <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
         {messageThread && (
           <SafeAreaView>
             <ScrollView
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
+              onTouchStart={handleOuterTouchStart}
+              onTouchMove={handleOuterTouchMove}
               onTouchEnd={handleSwipeDown}
               contentContainerStyle={{ flexGrow: 1 }}
             >
@@ -112,6 +252,8 @@ const MessageThread: FC<IMessageThread> = ({
                 <ScrollView
                   style={[styles.repliesContainer, { flexGrow: 0 }]}
                   ref={scrollViewRef}
+                  onTouchStart={handleInnerScrollViewTouchStart}
+                  onTouchEnd={handleInnerScrollViewTouchEnd}
                 >
                   {renderReplies()}
                 </ScrollView>
@@ -120,16 +262,19 @@ const MessageThread: FC<IMessageThread> = ({
                     ref={replyInputRef}
                     value={currentReply}
                     onChangeText={setCurrentReply}
-                    onSubmitEditing={submitReply}
-                    placeholder="Type a message..."
+                    onSubmitEditing={
+                      isEditing ? handleSendReplyEdit : submitReply
+                    }
+                    placeholder={inputPretext}
                     placeholderTextColor="#888"
                     style={styles.input}
                     autoFocus={true}
+                    onPress={() => setSelectedReply(null)}
                   />
                   <Button
                     title="Send"
                     color="#fff"
-                    onPress={submitReply}
+                    onPress={isEditing ? handleSendReplyEdit : submitReply}
                     disabled={!currentReply.trim()}
                   />
                 </View>
@@ -207,6 +352,9 @@ const styles = StyleSheet.create({
     width: "100%",
     minHeight: 100,
     maxHeight: 300,
+  },
+  replyBlock: {
+    position: "relative",
   },
 });
 

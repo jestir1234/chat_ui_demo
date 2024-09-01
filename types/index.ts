@@ -1,7 +1,3 @@
-export interface IMessageBlock {
-  message: IMessage;
-}
-
 export interface IMeta {
   emoji?: string;
   edited?: boolean;
@@ -17,6 +13,7 @@ export interface IMessage {
   meta?: IMeta;
   isFirstMessage?: boolean;
   senderId: number;
+  replyToId?: string;
 }
 
 export type IMockMessage = Omit<IMessage, "name" | "avatar">;

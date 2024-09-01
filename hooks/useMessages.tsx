@@ -19,7 +19,7 @@ export function useMessages(initialMessages: IMockMessage[]) {
     const mockMessageInterval = setInterval(() => {
       const mockMessage = generateMockMessage(messages[0]?.senderId);
       setMessages((prev) => [mockMessage, ...prev]);
-    }, 20000);
+    }, 12000);
 
     return () => clearInterval(mockMessageInterval);
   }, [messages]);
@@ -59,6 +59,36 @@ export function useMessages(initialMessages: IMockMessage[]) {
     }
   }, [selectedMessage, currentMessage]);
 
+  const handleUpdateReply = useCallback(
+    (currentReply: string, selectedReply: IMessage, cb?: () => void) => {
+      if (selectedMessage && currentReply.trim()) {
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === selectedMessage.id
+              ? {
+                  ...message,
+                  meta: {
+                    ...message.meta,
+                    replies: message.meta?.replies?.map((reply) =>
+                      reply.id === selectedReply.id
+                        ? {
+                            ...reply,
+                            text: currentReply,
+                            meta: { ...reply.meta, edited: true },
+                          }
+                        : reply
+                    ),
+                  },
+                }
+              : message
+          )
+        );
+        cb?.();
+      }
+    },
+    [selectedMessage]
+  );
+
   const handleEmojiMessage = useCallback(
     (emoji: string) => {
       if (selectedMessage) {
@@ -71,6 +101,32 @@ export function useMessages(initialMessages: IMockMessage[]) {
         );
         setSelectedMessage(null);
         setIsModalVisible(false);
+      }
+    },
+    [selectedMessage]
+  );
+
+  const handleEmojiReply = useCallback(
+    (emoji: string, selectedReply: IMessage, cb?: () => void) => {
+      if (selectedMessage) {
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === selectedMessage.id
+              ? {
+                  ...message,
+                  meta: {
+                    ...message.meta,
+                    replies: message.meta?.replies?.map((reply) =>
+                      reply.id === selectedReply.id
+                        ? { ...reply, meta: { ...reply.meta, emoji } }
+                        : reply
+                    ),
+                  },
+                }
+              : message
+          )
+        );
+        cb?.();
       }
     },
     [selectedMessage]
@@ -106,6 +162,30 @@ export function useMessages(initialMessages: IMockMessage[]) {
       setIsModalVisible(false);
     }
   }, [selectedMessage]);
+
+  const handleDeleteReply = useCallback(
+    (selectedReply: IMessage, cb?: () => void) => {
+      if (selectedMessage) {
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === selectedMessage.id
+              ? {
+                  ...message,
+                  meta: {
+                    ...message.meta,
+                    replies: message.meta?.replies?.filter(
+                      (reply) => reply.id !== selectedReply.id
+                    ),
+                  },
+                }
+              : message
+          )
+        );
+        cb?.();
+      }
+    },
+    [selectedMessage]
+  );
 
   const handleReplyMessage = useCallback(() => {
     if (selectedMessage) {
@@ -155,5 +235,8 @@ export function useMessages(initialMessages: IMockMessage[]) {
     messageThread,
     setMessageThread,
     handleAddReply,
+    handleEmojiReply,
+    handleUpdateReply,
+    handleDeleteReply,
   };
 }

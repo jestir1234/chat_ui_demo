@@ -2,9 +2,13 @@ import React, { FC, useEffect, useState, useMemo, memo } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { formatDate, extractUrl, isImageUrl } from "../../utils";
 import FormmatedText from "./FormattedText";
-import { IMessageBlock } from "../../types";
+import { IMessage } from "../../types";
+export interface IMessageBlock {
+  message: IMessage;
+  isSelected?: boolean;
+}
 
-const MessageBlock: FC<IMessageBlock> = ({ message }) => {
+const MessageBlock: FC<IMessageBlock> = ({ message, isSelected }) => {
   const [imgPreviewUrl, setImgPreviewUrl] = useState<string | null>(null);
   const { text } = message;
   const url = useMemo(() => extractUrl(text), [text]);
@@ -29,6 +33,7 @@ const MessageBlock: FC<IMessageBlock> = ({ message }) => {
     : null;
   return (
     <View style={styles.messageBlockContainer}>
+      {isSelected && <View style={styles.highlightOverlay} />}
       {message.isFirstMessage && (
         <View style={styles.container}>
           <View style={styles.header}>
@@ -73,7 +78,7 @@ const MessageBlock: FC<IMessageBlock> = ({ message }) => {
           ) : null}
         </View>
       </View>
-      {message.meta?.replies ? (
+      {message.meta?.replies?.length ? (
         <View style={styles.contentBlock}>
           <View style={styles.emptySpace} />
           <View style={styles.repliesCount}>
@@ -95,7 +100,10 @@ const MessageBlock: FC<IMessageBlock> = ({ message }) => {
 };
 
 const styles = StyleSheet.create({
-  messageBlockContainer: {},
+  messageBlockContainer: {
+    paddingTop: 5,
+    paddingBottom: 5,
+  },
   container: {
     display: "flex",
     width: "100%",
@@ -179,6 +187,13 @@ const styles = StyleSheet.create({
   lastReplyTimestamp: {
     fontSize: 10,
     color: "grey",
+  },
+  highlightOverlay: {
+    width: "100%",
+    position: "absolute",
+    height: "100%",
+    backgroundColor: "#fff",
+    opacity: 0.1,
   },
 });
 
