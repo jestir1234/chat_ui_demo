@@ -50,6 +50,11 @@ const ChatScreen: FC = () => {
   const chatWindowRef = useRef<any>(null);
   const textInputRef = useRef<TextInput>(null);
 
+  useEffect(() => {
+    // Scroll to the bottom when the component mounts
+    scrollToBottom();
+  }, []);
+
   const scrollToBottom = () => {
     chatWindowRef.current?.scrollToEnd();
   };
@@ -62,7 +67,7 @@ const ChatScreen: FC = () => {
   const handleEditMessage = useCallback(() => {
     setCurrentMessage(selectedMessage?.text as string);
     setIsModalVisible(false);
-    setTimeout(() => textInputRef.current?.focus(), 200);
+    textInputRef.current?.focus();
   }, [selectedMessage]);
 
   const getThreadMessageFromMessages = () => {
@@ -89,11 +94,6 @@ const ChatScreen: FC = () => {
 
   const listKeyExtract = (item: IMockMessage) => item.id;
 
-  useEffect(() => {
-    // Scroll to the bottom when the component mounts
-    scrollToBottom();
-  }, []);
-
   const threadMessage = useMemo(
     () => getThreadMessageFromMessages(),
     [messageThread?.id, messages]
@@ -117,7 +117,6 @@ const ChatScreen: FC = () => {
           data={messages}
           keyExtractor={listKeyExtract}
           keyboardShouldPersistTaps="handled"
-          scrollEventThrottle={400}
           renderItem={renderItem}
         />
         <View style={styles.inputContainer}>
