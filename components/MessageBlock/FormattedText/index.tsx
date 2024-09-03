@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Text, StyleSheet, Linking } from "react-native";
 
 const FormmatedText: React.FC<{ text: string }> = ({ text }) => {
@@ -45,4 +45,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FormmatedText;
+export default memo(FormmatedText);
