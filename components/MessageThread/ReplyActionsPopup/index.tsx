@@ -22,6 +22,7 @@ interface IReplyActionsPopup {
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   setIsReplying: React.Dispatch<React.SetStateAction<boolean>>;
+  canEdit: boolean;
 }
 
 const ReplyActionsPopup: FC<IReplyActionsPopup> = ({
@@ -33,6 +34,7 @@ const ReplyActionsPopup: FC<IReplyActionsPopup> = ({
   isEditing,
   setIsEditing,
   setIsReplying,
+  canEdit,
 }) => {
   const scaleValue = useRef(new Animated.Value(0)).current;
 
@@ -71,24 +73,28 @@ const ReplyActionsPopup: FC<IReplyActionsPopup> = ({
           <Text>{emoji}</Text>
         </TouchableOpacity>
       ))}
-      <TouchableOpacity onPress={handleEditPress}>
-        <Text
-          style={[
-            styles.actionText,
-            {
-              color: isEditing ? "lightblue" : "white",
-              fontWeight: isEditing ? "bold" : 500,
-            },
-          ]}
+      {canEdit && (
+        <TouchableOpacity onPress={handleEditPress}>
+          <Text
+            style={[
+              styles.actionText,
+              {
+                color: isEditing ? "lightblue" : "white",
+                fontWeight: isEditing ? "bold" : 500,
+              },
+            ]}
+          >
+            Edit
+          </Text>
+        </TouchableOpacity>
+      )}
+      {canEdit && (
+        <TouchableOpacity
+          onPress={() => handleDeleteReply(selectedReply, onClose)}
         >
-          Edit
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => handleDeleteReply(selectedReply, onClose)}
-      >
-        <Text style={styles.actionText}>Delete</Text>
-      </TouchableOpacity>
+          <Text style={styles.actionText}>Delete</Text>
+        </TouchableOpacity>
+      )}
       <TouchableOpacity onPress={() => handleReplyPress()}>
         <Text style={styles.actionText}>Reply</Text>
       </TouchableOpacity>

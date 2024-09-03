@@ -112,6 +112,7 @@ const MessageThread: FC<IMessageThread> = ({
             {selectedReply?.id === message.id && (
               <ReplyActionsPopup
                 isEditing={isEditing}
+                canEdit={message.senderId === getMyId()}
                 setIsEditing={setIsEditing}
                 setIsReplying={setIsReplying}
                 handleEmojiReply={handleEmojiReply}
